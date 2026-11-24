@@ -31,7 +31,7 @@ const fullmoves = computed(() => {
 
 <template>
     <div class="flex w-full flex-col gap-1">
-        <div class="flex w-full items-center gap-4" v-for="(fullmove, fullmoveIndex) in fullmoves">
+        <div class="flex w-full items-center gap-4" v-for="(fullmove, fullmoveIndex) in fullmoves" :key="fullmoveIndex">
             <div>
                 <span class="text-muted-color text-xs">{{ fullmoveIndex + 1 }}.</span>
             </div>
@@ -41,12 +41,13 @@ const fullmoves = computed(() => {
                     :class="[
                         {
                             'bg-surface-200 dark:bg-surface-800':
-                                2 * fullmoveIndex + halfmoveIndex + 1 === props.activeHalfmoveIndex,
+                                props.playerCount * fullmoveIndex + halfmoveIndex + 1 === props.activeHalfmoveIndex,
                         },
                         'hover:bg-surface-200 dark:hover:bg-surface-800 relative cursor-pointer rounded-lg py-1',
                     ]"
-                    @click="$emit('goToMove', 2 * fullmoveIndex + halfmoveIndex + 1)"
+                    @click="$emit('goToMove', props.playerCount * fullmoveIndex + halfmoveIndex + 1)"
                     v-for="(halfmove, halfmoveIndex) in fullmove"
+                    :key="halfmoveIndex"
                 >
                     <span class="relative left-2/5 text-sm">{{ halfmove }}</span>
                 </div>

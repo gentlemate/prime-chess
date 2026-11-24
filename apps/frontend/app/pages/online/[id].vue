@@ -14,7 +14,6 @@ const {
     activeMove,
     checkedSquare,
     tryMove,
-    cancelLastMove,
     spinChessboard,
     goToMove,
     goToFirstMove,
@@ -43,16 +42,13 @@ const {
         </div>
         <div class="flex w-full flex-col gap-4 overflow-y-auto p-4 lg:h-screen lg:w-120">
             <Panel header="Moves" class="order-2 lg:order-1 lg:flex-1">
-                <div class="flex flex-col gap-4">
-                    <div class="max-h-50 w-full overflow-y-auto">
-                        <MoveHistory
-                            v-if="algebraicMoves.length > 0"
-                            :algebraic-moves="algebraicMoves"
-                            :active-halfmove-index="activeHalfmoveIndex"
-                            @go-to-move="goToMove"
-                        />
-                    </div>
-                    <Button variant="text" severity="danger" @click="cancelLastMove">Cancel last move</Button>
+                <div class="max-h-50 w-full overflow-y-auto">
+                    <MoveHistory
+                        v-if="algebraicMoves.length > 0"
+                        :algebraic-moves="algebraicMoves"
+                        :active-halfmove-index="activeHalfmoveIndex"
+                        @go-to-move="goToMove"
+                    />
                 </div>
             </Panel>
 

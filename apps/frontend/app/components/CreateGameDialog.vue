@@ -44,7 +44,7 @@ const createGame = async (): Promise<void> => {
             // Online
             const data = await ApiService.createGame(v);
             store.storeGame("online", { id: data.gameId, state: data.state });
-            await navigateTo(`online/${data.gameId}`);
+            await navigateTo(`/online/${data.gameId}`);
         }
     } catch (error) {
         console.error("Failed to create game.", error);

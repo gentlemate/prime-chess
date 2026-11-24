@@ -64,7 +64,7 @@ const pieceAnimation = computed({
             <Select
                 v-model="selectedColor"
                 :options="getColors()"
-                optionLabel="color"
+                optionLabel="name"
                 placeholder="Select a color"
                 class="w-40"
             >

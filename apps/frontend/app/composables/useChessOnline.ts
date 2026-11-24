@@ -1,6 +1,12 @@
 import type { Move } from "@primechess/chess-lib";
 import { ApiService } from "~/services/ApiService";
 
+type MoveEvent = {
+    event: "move";
+    move: { from: string; to: string };
+    ply: number;
+};
+
 export function useChessOnline(gameId: string) {
     const store = useChessStore();
     const core = useChessCore();
@@ -9,18 +15,22 @@ export function useChessOnline(gameId: string) {
     const playerIndex = ref<number | undefined>(undefined);
     const canMove = computed<boolean>(() => core.canMove.value && playerIndex.value === core.activePlayerIndex.value);
 
+    let isLoaded = false;
+    let pendingEvents: MoveEvent[] = [];
+
     onMounted(async () => {
         try {
-            const data = await ApiService.joinGame(gameId);
-            playerIndex.value = data.playerIndex;
-            core.playerInFrontIndex.value = playerIndex.value;
-            core.loadState(data.state);
-            store.storeGame("online", { id: data.gameId, state: data.state });
-
-            unsubscribe = ApiService.subscribe(gameId, (data: any) => {
-                core.tryMove(data.move.from, data.move.to);
-                store.storeMove(data.move);
+            unsubscribe = await ApiService.subscribe(gameId, (data: any) => {
+                if (data?.event !== "move") return;
+                if (!isLoaded) {
+                    pendingEvents.push(data);
+                    return;
+                }
+                applyMoveEvent(data);
             });
+
+            await sync();
+            core.playerInFrontIndex.value = playerIndex.value ?? 0;
         } catch (error) {
             console.error("Failed to join game.", error);
             navigateTo("/");
@@ -28,10 +38,35 @@ export function useChessOnline(gameId: string) {
     });
 
     onUnmounted(() => {
-        if (unsubscribe) {
-            unsubscribe();
-        }
+        unsubscribe?.();
     });
+
+    async function sync(): Promise<void> {
+        isLoaded = false;
+        const data = await ApiService.joinGame(gameId);
+        playerIndex.value = data.playerIndex;
+        core.loadState(data.state);
+        store.storeGame("online", { id: data.gameId, state: data.state });
+        isLoaded = true;
+
+        const queued = pendingEvents;
+        pendingEvents = [];
+        queued.forEach(applyMoveEvent);
+    }
+
+    function applyMoveEvent(data: MoveEvent): void {
+        const playedHalfmoves: number = core.algebraicMoves.value.length;
+
+        if (data.ply <= playedHalfmoves) return;
+
+        if (data.ply > playedHalfmoves + 1) {
+            sync().catch((error) => console.error("Failed to resync game.", error));
+            return;
+        }
+
+        const move: Move | null = core.tryMove(data.move.from, data.move.to);
+        if (move) store.storeMove(move);
+    }
 
     async function tryMove(from: string, to: string): Promise<void> {
         try {
@@ -41,15 +76,10 @@ export function useChessOnline(gameId: string) {
         }
     }
 
-    function cancelLastMove(): Move | null {
-        return null;
-    }
-
     return {
         ...core,
         playerIndex,
         canMove,
         tryMove,
-        cancelLastMove,
     };
 }

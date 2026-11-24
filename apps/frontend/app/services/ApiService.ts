@@ -85,7 +85,7 @@ export class ApiService {
         }
     }
 
-    static subscribe(gameId: string, onMove: (data: any) => void): () => void {
+    static async subscribe(gameId: string, onMessage: (data: any) => void): Promise<() => void> {
         if (!this.transmit) {
             const { $apiBaseUrl } = useNuxtApp();
             this.transmit = new Transmit({
@@ -95,11 +95,11 @@ export class ApiService {
         }
 
         const subscription = this.transmit.subscription(`games/${gameId}`);
-        subscription.create();
-
-        subscription.onMessage(onMove);
+        const stopListening = subscription.onMessage(onMessage);
+        await subscription.create();
 
         return () => {
+            stopListening();
             subscription.delete();
         };
     }
