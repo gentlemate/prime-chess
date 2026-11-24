@@ -1,7 +1,7 @@
 import type { HttpContext } from "@adonisjs/core/http";
 import transmit from "@adonisjs/transmit/services/main";
-import { Game } from "../types/Game.js";
-import { chess, HistoryEntry } from "@primechess/chess-lib";
+import { type Game } from "../types/game.js";
+import { chess, type HistoryEntry } from "@primechess/chess-lib";
 import { ChessVariant } from "@primechess/types";
 
 export default class GamesController {

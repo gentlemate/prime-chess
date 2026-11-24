@@ -2,9 +2,19 @@
     "name": "@primechess/types",
     "version": "1.0.0",
     "type": "module",
-    "main": "./index.ts",
-    "types": "./index.ts",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "exports": {
-        ".": "./index.ts"
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "build": "tsc",
+        "prepare": "tsc"
+    },
+    "devDependencies": {
+        "typescript": "~6.0.3"
     }
 }

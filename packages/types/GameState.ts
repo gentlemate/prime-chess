@@ -1,5 +1,5 @@
-import type { ChessVariant } from "./ChessVariant";
-import type { Move } from "./Move";
+import type { ChessVariant } from "./ChessVariant.js";
+import type { Move } from "./Move.js";
 
 export interface GameState {
     variant: ChessVariant;

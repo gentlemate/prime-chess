@@ -10,7 +10,7 @@ export default defineNuxtConfig({
             apiBaseUrl: process.env.API_BASE_URL,
         },
     },
-    css: ["./app/app.css"],
+    css: ["~/app.css"],
     vite: {
         plugins: [tailwindcss()],
     },
