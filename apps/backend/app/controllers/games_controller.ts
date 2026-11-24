@@ -110,13 +110,14 @@ export default class GamesController {
         }
 
         if (!game.chess.isLegalMove(from, to)) {
-            return { error: "Illegal move", from, to };
+            return response.status(422).send({ error: "Illegal move", from, to });
         }
 
         game.chess.tryMove(from, to);
 
         const data = {
             move: { from, to },
+            ply: game.chess.getHistory().length - 1,
         };
 
         transmit.broadcast(`games/${gameId}`, {
