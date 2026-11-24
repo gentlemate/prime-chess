@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import Moon from "@primeicons/vue/moon";
+import Sun from "@primeicons/vue/sun";
+
 const {
     resetSettings,
     isDarkMode,
@@ -46,11 +49,14 @@ const pieceAnimation = computed({
             <span class="text-muted-color">Dark mode toggle :</span>
             <Button
                 variant="outlined"
-                :icon="isDarkMode() ? 'pi pi-moon' : 'pi pi-sun'"
+                iconOnly
                 severity="contrast"
                 aria-label="Toggle dark mode"
                 @click="toggleDarkMode"
-            />
+            >
+                <Moon v-if="isDarkMode()" />
+                <Sun v-else />
+            </Button>
         </label>
 
         <label class="flex flex-wrap items-center justify-between gap-2">
@@ -90,6 +96,6 @@ const pieceAnimation = computed({
             <ToggleSwitch v-model="pieceAnimation" />
         </label>
 
-        <Button label="Reset" severity="secondary" @click="resetSettings" />
+        <Button severity="secondary" @click="resetSettings">Reset</Button>
     </div>
 </template>

@@ -52,7 +52,7 @@ const {
                             @go-to-move="goToMove"
                         />
                     </div>
-                    <Button label="Cancel last move" variant="text" severity="danger" @click="cancelLastMove" />
+                    <Button variant="text" severity="danger" @click="cancelLastMove">Cancel last move</Button>
                 </div>
             </Panel>
 

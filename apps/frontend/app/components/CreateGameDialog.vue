@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import AngleLeft from "@primeicons/vue/angle-left";
+import AngleRight from "@primeicons/vue/angle-right";
+import Desktop from "@primeicons/vue/desktop";
+import FaceSmile from "@primeicons/vue/face-smile";
+import MicrochipAi from "@primeicons/vue/microchip-ai";
+import Spinner from "@primeicons/vue/spinner";
+import Users from "@primeicons/vue/users";
 import { ChessVariant } from "@primechess/types";
 import { ApiService } from "~/services/ApiService";
 const store = useChessStore();
@@ -7,10 +14,10 @@ const visible = ref<boolean>(true);
 const loading = ref<boolean>(false);
 
 const opponents = [
-    { name: "Local", icon: "pi-desktop", type: 0 },
-    { name: "Anybody", icon: "pi-users", type: 1 },
-    { name: "Friend", icon: "pi-face-smile", type: 2 },
-    { name: "Computer", icon: "pi-microchip-ai", type: 3 },
+    { name: "Local", icon: markRaw(Desktop), type: 0 },
+    { name: "Anybody", icon: markRaw(Users), type: 1 },
+    { name: "Friend", icon: markRaw(FaceSmile), type: 2 },
+    { name: "Computer", icon: markRaw(MicrochipAi), type: 3 },
 ];
 
 const variants = [
@@ -56,7 +63,7 @@ const createGame = async (): Promise<void> => {
                 <Listbox v-model="opponent" :options="opponents" optionLabel="name" class="w-48 max-sm:w-full">
                     <template #option="slotProps">
                         <div class="flex items-center gap-2">
-                            <i :class="`pi ${slotProps.option.icon}`"></i>
+                            <component :is="slotProps.option.icon" />
                             <span>{{ slotProps.option.name }}</span>
                         </div>
                     </template>
@@ -96,22 +103,15 @@ const createGame = async (): Promise<void> => {
         <Divider />
 
         <div class="flex justify-end gap-2">
-            <Button
-                type="button"
-                label="Cancel"
-                severity="secondary"
-                icon="pi pi-angle-left"
-                iconPos="left"
-                @click="visible = false"
-            ></Button>
-            <Button
-                type="button"
-                label="Create"
-                severity="contrast"
-                :icon="loading ? 'pi pi-spinner pi-spin' : 'pi pi-angle-right'"
-                iconPos="right"
-                @click="createGame"
-            ></Button>
+            <Button type="button" severity="secondary" @click="visible = false">
+                <AngleLeft />
+                Cancel
+            </Button>
+            <Button type="button" severity="contrast" @click="createGame">
+                Create
+                <Spinner v-if="loading" spin />
+                <AngleRight v-else />
+            </Button>
         </div>
     </Dialog>
 </template>
