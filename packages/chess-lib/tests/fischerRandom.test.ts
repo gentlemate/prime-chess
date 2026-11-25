@@ -1,5 +1,4 @@
 import { describe, it, expect } from "vitest";
-import { PieceName } from "../src/types/PieceName";
 import { CastlingSide } from "../src/types/CastlingSide";
 import { MoveType } from "../src/types/MoveType";
 import { Chess960Rows } from "./data/Chess960Rows";

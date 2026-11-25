@@ -7,6 +7,7 @@ export type MoveDTO = {
     toPosition?: Position;
     fromSquare: string;
     toSquare: string;
+    piece: PieceDTO | null;
     captureSquare?: string | null;
     capturedPiece?: PieceDTO | null;
     nestedMove?: MoveDTO | null;

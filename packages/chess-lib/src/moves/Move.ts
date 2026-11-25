@@ -53,6 +53,7 @@ export class Move {
             toPosition: this.toSquare.position,
             fromSquare: this.fromSquare.name,
             toSquare: this.toSquare.name,
+            piece: this.fromSquare.piece?.serialize() ?? null,
         };
     }
 }

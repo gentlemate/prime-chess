@@ -222,37 +222,59 @@ export class Chessboard {
         return null;
     }
 
-    carryoutMove(move: MoveDTO): void {
-        const fromSquare: Square | null = this.getSquareByName(move.fromSquare);
-        const toSquare: Square | null = this.getSquareByName(move.toSquare);
-        const captureSquare: Square | null = move.captureSquare ? this.getSquareByName(move.captureSquare) : null;
+    private flattenMoves(move: MoveDTO): MoveDTO[] {
+        const moves: MoveDTO[] = [];
+        let m: MoveDTO | null = move;
 
-        if (fromSquare && fromSquare.piece && toSquare) {
-            captureSquare?.piece && (captureSquare.piece = null);
-            toSquare.piece = move.isPromoting ? new Queen(fromSquare.piece.color) : fromSquare.piece;
-            fromSquare.piece = null;
+        while (m) {
+            moves.push(m);
+            m = m.nestedMove ?? null;
         }
 
-        if (move.nestedMove) {
-            this.carryoutMove(move.nestedMove);
+        return moves;
+    }
+
+    carryoutMove(move: MoveDTO): void {
+        const moves: MoveDTO[] = this.flattenMoves(move);
+        const pieces: (Piece | null)[] = moves.map((m) => this.getSquareByName(m.fromSquare)?.piece ?? null);
+
+        for (const [i, move] of moves.entries()) {
+            const fromSquare: Square | null = this.getSquareByName(move.fromSquare);
+            const toSquare: Square | null = this.getSquareByName(move.toSquare);
+            const captureSquare: Square | null = move.captureSquare ? this.getSquareByName(move.captureSquare) : null;
+            const piece: Piece | null = pieces[i];
+
+            if (piece && fromSquare && toSquare) {
+                captureSquare?.piece && (captureSquare.piece = null);
+                toSquare.piece = move.isPromoting ? new Queen(piece.color) : piece;
+                if (fromSquare.name !== toSquare.name && fromSquare.name !== moves[i - 1]?.toSquare) {
+                    fromSquare.piece = null;
+                }
+            }
         }
     }
 
     undoMove(move: MoveDTO): void {
-        const fromSquare: Square | null = this.getSquareByName(move.fromSquare);
-        const toSquare: Square | null = this.getSquareByName(move.toSquare);
-        const captureSquare: Square | null = move.captureSquare ? this.getSquareByName(move.captureSquare) : null;
+        const moves: MoveDTO[] = this.flattenMoves(move).reverse();
+        const pieces: (Piece | null)[] = moves.map((m) => this.getSquareByName(m.toSquare)?.piece ?? null);
 
-        if (move.nestedMove) {
-            this.undoMove(move.nestedMove);
-        }
+        for (const [i, move] of moves.entries()) {
+            const fromSquare: Square | null = this.getSquareByName(move.fromSquare);
+            const toSquare: Square | null = this.getSquareByName(move.toSquare);
+            const captureSquare: Square | null = move.captureSquare ? this.getSquareByName(move.captureSquare) : null;
+            const piece: Piece | null = pieces[i];
 
-        if (fromSquare && toSquare && toSquare.piece) {
-            fromSquare.piece = move.isPromoting ? new Pawn(toSquare.piece.color) : toSquare.piece;
-            toSquare.piece = null;
-
-            if (captureSquare && move.capturedPiece) {
-                captureSquare.setPiece(move.capturedPiece.name as PieceName, move.capturedPiece.color as PlayerColor);
+            if (piece && fromSquare && toSquare) {
+                fromSquare.piece = move.isPromoting ? new Pawn(piece.color) : piece;
+                if (fromSquare.name !== toSquare.name && toSquare.name !== moves[i - 1]?.fromSquare) {
+                    toSquare.piece = null;
+                }
+                if (captureSquare && move.capturedPiece) {
+                    captureSquare.setPiece(
+                        move.capturedPiece.name as PieceName,
+                        move.capturedPiece.color as PlayerColor,
+                    );
+                }
             }
         }
     }
