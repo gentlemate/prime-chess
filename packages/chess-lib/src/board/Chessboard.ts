@@ -1,0 +1,489 @@
+import { Position } from "../coordinates/Position";
+import { Direction } from "../coordinates/Direction";
+import { PieceName } from "../types/PieceName";
+import { PlayerColor } from "../types/PlayerColor";
+import { MoveType } from "../types/MoveType";
+import { LegalMoves } from "../types/LegalMoves";
+import { Piece } from "../pieces/Piece";
+import { Pawn } from "../pieces/Pawn";
+import { Knight } from "../pieces/Knight";
+import { Bishop } from "../pieces/Bishop";
+import { Rook } from "../pieces/Rook";
+import { Queen } from "../pieces/Queen";
+import { King } from "../pieces/King";
+import { Square } from "./Square";
+import { Player } from "../players/Player";
+import { Move } from "../moves/Move";
+import { Castling } from "../moves/Castling";
+import { PieceDTO } from "../dto/PieceDTO";
+import { MoveDTO } from "../dto/MoveDTO";
+import { SquaresDTO } from "../dto/SquaresDTO";
+import { gcd, isInteger, isPieceName } from "../utils";
+
+export class Chessboard {
+    static Ranks: string[] = ["1", "2", "3", "4", "5", "6", "7", "8"];
+    static Files: string[] = ["a", "b", "c", "d", "e", "f", "g", "h"];
+
+    static WhitesCastlingSquares = {
+        kingside: {
+            king: {
+                from: "e1",
+                to: "g1",
+            },
+            rook: {
+                from: "h1",
+                to: "f1",
+            },
+        },
+        queenside: {
+            king: {
+                from: "e1",
+                to: "c1",
+            },
+            rook: {
+                from: "a1",
+                to: "d1",
+            },
+        },
+    };
+    static BlacksCastlingSquares = {
+        kingside: {
+            king: {
+                from: "e8",
+                to: "g8",
+            },
+            rook: {
+                from: "h8",
+                to: "f8",
+            },
+        },
+        queenside: {
+            king: {
+                from: "e8",
+                to: "c8",
+            },
+            rook: {
+                from: "a8",
+                to: "d8",
+            },
+        },
+    };
+
+    ranks: string[];
+    files: string[];
+    reversedRanks: string[];
+    reversedFiles: string[];
+    squares: Map<string, Square> = new Map();
+
+    constructor(fenPositionString: string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR") {
+        this.ranks = Chessboard.Ranks;
+        this.files = Chessboard.Files;
+        this.reversedRanks = [...this.ranks].reverse();
+        this.reversedFiles = [...this.files].reverse();
+
+        for (const [y, rank] of this.ranks.entries()) {
+            for (const [x, file] of this.files.entries()) {
+                let square: Square = new Square(file + rank, { x, y });
+                this.squares.set(square.name, square);
+            }
+        }
+
+        this.fill(fenPositionString);
+    }
+
+    getSquareByName(squareName: string): Square | null {
+        return this.squares.get(squareName) ?? null;
+    }
+
+    getSquareByPosition(position: Position): Square | null {
+        if (position.x < 0 || position.y < 0 || position.x >= this.files.length || position.y >= this.ranks.length) {
+            return null;
+        }
+
+        return this.squares.get(this.files[position.x] + this.ranks[position.y])!;
+    }
+
+    getSquareByDirection(square: Square, direction: Direction, repeatCount: number = 1): Square | null {
+        return this.getSquareByPosition({
+            x: square.position.x + repeatCount * direction.dx,
+            y: square.position.y + repeatCount * direction.dy,
+        });
+    }
+
+    setSquare(squareName: string, piece: PieceDTO | null): void {
+        const square: Square | null = this.getSquareByName(squareName);
+        if (square) {
+            if (square) {
+                if (piece) {
+                    square.setPiece(piece.name as PieceName, piece.color as PlayerColor);
+                } else {
+                    square.piece = null;
+                }
+            }
+        }
+    }
+
+    getDirectionBetween(fromSquare: Square, toSquare: Square): Direction {
+        const dx: number = toSquare.position.x - fromSquare.position.x;
+        const dy: number = toSquare.position.y - fromSquare.position.y;
+
+        if (dx === 0 && dy === 0) {
+            return { dx: 0, dy: 0 };
+        }
+
+        const divisor: number = gcd(Math.abs(dx), Math.abs(dy));
+
+        return {
+            dx: dx / divisor,
+            dy: dy / divisor,
+        };
+    }
+
+    isPathLegal(player: Player, fromSquare: Square, toSquare: Square, ignoredSquareNames: string[] = []): boolean {
+        if (fromSquare === toSquare) {
+            return true;
+        }
+
+        const direction: Direction = this.getDirectionBetween(fromSquare, toSquare);
+        let square: Square | null = fromSquare;
+
+        while ((square = this.getSquareByDirection(square, direction))) {
+            if (!ignoredSquareNames.includes(square.name)) {
+                if (!square.isEmpty()) {
+                    return false;
+                }
+
+                if (fromSquare.isOccupiedByPieceName(PieceName.King)) {
+                    const move: Move = new Move(fromSquare, square);
+                    if (this.isCheckedByMoving(player, move)) {
+                        return false;
+                    }
+                }
+            }
+
+            if (square === toSquare) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    empty(): void {
+        for (const [y, rank] of this.ranks.entries()) {
+            for (const [x, file] of this.files.entries()) {
+                let square: Square | null = this.getSquareByName(file + rank);
+                if (square) square.piece = null;
+            }
+        }
+    }
+
+    fill(fenPositionString: string): void {
+        const rows = fenPositionString.split("/");
+
+        rows.reverse().forEach((row, y) => {
+            let x: number = 0;
+
+            for (const char of row) {
+                if (isInteger(char)) {
+                    const emptyCount: number = parseInt(char, 10);
+                    for (let i = 0; i < emptyCount; i++) {
+                        const square: Square | null = this.getSquareByName(this.files[x] + this.ranks[y]);
+                        if (square) square.piece = null;
+                        x++;
+                    }
+                    continue;
+                }
+
+                if (!isPieceName(char)) {
+                    const square: Square | null = this.getSquareByName(this.files[x] + this.ranks[y]);
+                    if (square) square.piece = null;
+                    x++;
+                    continue;
+                }
+
+                const pieceName = char.toLowerCase() as PieceName;
+                const playerColor = char === char.toUpperCase() ? PlayerColor.White : PlayerColor.Black;
+                const square: Square | null = this.getSquareByName(this.files[x] + this.ranks[y]);
+                if (square) square.setPiece(pieceName, playerColor);
+
+                x++;
+            }
+        });
+    }
+
+    findKingSquare(color: PlayerColor): Square | null {
+        for (const square of this.squares.values()) {
+            if (square.isOccupiedByPieceName(PieceName.King) && square.isOccupiedByAlly(color)) {
+                return square;
+            }
+        }
+
+        return null;
+    }
+
+    carryoutMove(move: MoveDTO): void {
+        const fromSquare: Square | null = this.getSquareByName(move.fromSquare);
+        const toSquare: Square | null = this.getSquareByName(move.toSquare);
+        const captureSquare: Square | null = move.captureSquare ? this.getSquareByName(move.captureSquare) : null;
+
+        if (fromSquare && fromSquare.piece && toSquare) {
+            captureSquare?.piece && (captureSquare.piece = null);
+            toSquare.piece = move.isPromoting ? new Queen(fromSquare.piece.color) : fromSquare.piece;
+            fromSquare.piece = null;
+        }
+
+        if (move.nestedMove) {
+            this.carryoutMove(move.nestedMove);
+        }
+    }
+
+    undoMove(move: MoveDTO): void {
+        const fromSquare: Square | null = this.getSquareByName(move.fromSquare);
+        const toSquare: Square | null = this.getSquareByName(move.toSquare);
+        const captureSquare: Square | null = move.captureSquare ? this.getSquareByName(move.captureSquare) : null;
+
+        if (move.nestedMove) {
+            this.undoMove(move.nestedMove);
+        }
+
+        if (fromSquare && toSquare && toSquare.piece) {
+            fromSquare.piece = move.isPromoting ? new Pawn(toSquare.piece.color) : toSquare.piece;
+            toSquare.piece = null;
+
+            if (captureSquare && move.capturedPiece) {
+                captureSquare.setPiece(move.capturedPiece.name as PieceName, move.capturedPiece.color as PlayerColor);
+            }
+        }
+    }
+
+    getLegalMoves(player: Player, enPassantTarget: string | null): LegalMoves {
+        let legalMoves: LegalMoves = {};
+
+        for (const square of this.squares.values()) {
+            if (square.piece && square.isOccupiedByAlly(player.color)) {
+                let moves: Move[] = square.piece.getMoves(player, square, this, enPassantTarget);
+
+                if (moves) {
+                    for (const move of moves) {
+                        if (!this.isCheckedByMoving(player, move)) {
+                            const from: string = move.fromSquare.name;
+                            const to: string = move.toSquare.name;
+
+                            if (!legalMoves[from]) {
+                                legalMoves[from] = {};
+                            }
+
+                            // Write the move if there is no existing legal move on this square
+                            // Overwrite it only if the existing legal move is a castling
+                            if (!legalMoves[from]?.[to] || legalMoves[from][to].getType() === MoveType.Castling) {
+                                legalMoves[from][to] = move;
+                            }
+
+                            // For castling, also add the possibility to click on the rook
+                            if (move instanceof Castling) {
+                                legalMoves[from][move.rookMove.fromSquare.name] = move;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return legalMoves;
+    }
+
+    isCheckedByPawn(player: Player): Piece | false {
+        if (player.kingSquare) {
+            let square: Square | null = null;
+
+            for (const direction of Bishop.Directions) {
+                if (direction.dx === player.direction.dx || direction.dy === player.direction.dy) {
+                    square = this.getSquareByDirection(player.kingSquare, direction);
+                    if (
+                        square &&
+                        square.piece &&
+                        square.isOccupiedByPieceName(PieceName.Pawn) &&
+                        square.isOccupiedByOpponent(player.color)
+                    ) {
+                        return square.piece;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    isCheckedByKnight(player: Player): Piece | false {
+        if (player.kingSquare) {
+            let square: Square | null = null;
+
+            for (const direction of Knight.Directions) {
+                square = this.getSquareByDirection(player.kingSquare, direction);
+                if (
+                    square &&
+                    square.piece &&
+                    square.isOccupiedByPieceName(PieceName.Knight) &&
+                    square.isOccupiedByOpponent(player.color)
+                ) {
+                    return square.piece;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    isCheckedBySlidingPiece(player: Player): Piece | false {
+        if (player.kingSquare) {
+            let square: Square | null = null;
+
+            for (const direction of Queen.Directions) {
+                square = this.getSquareByDirection(player.kingSquare, direction);
+                while (square) {
+                    if (square.piece) {
+                        if (square.isOccupiedByOpponent(player.color)) {
+                            if (Rook.Directions.includes(direction)) {
+                                if (
+                                    square.isOccupiedByPieceName(PieceName.Queen) ||
+                                    square.isOccupiedByPieceName(PieceName.Rook)
+                                ) {
+                                    return square.piece;
+                                }
+                            } else {
+                                if (
+                                    square.isOccupiedByPieceName(PieceName.Queen) ||
+                                    square.isOccupiedByPieceName(PieceName.Bishop)
+                                ) {
+                                    return square.piece;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    square = this.getSquareByDirection(square, direction);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    isCheckedByKing(player: Player): Piece | false {
+        if (player.kingSquare) {
+            let square: Square | null = null;
+
+            for (const direction of King.Directions) {
+                square = this.getSquareByDirection(player.kingSquare, direction);
+                if (
+                    square &&
+                    square.piece &&
+                    square.isOccupiedByPieceName(PieceName.King) &&
+                    square.isOccupiedByOpponent(player.color)
+                ) {
+                    return square.piece;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    isChecked(player: Player): Piece | false {
+        if (player.kingSquare) {
+            return (
+                this.isCheckedBySlidingPiece(player) ||
+                this.isCheckedByKnight(player) ||
+                this.isCheckedByPawn(player) ||
+                this.isCheckedByKing(player)
+            );
+        }
+
+        return false;
+    }
+
+    isCheckedByMoving(player: Player, move: Move): boolean {
+        let isChecked: boolean = false;
+
+        if (player.kingSquare) {
+            // If the moving piece is a King, we temporarily store the new King square before we verify if the player is checked
+            if (move.fromSquare.isOccupiedByPieceName(PieceName.King)) {
+                move.carryOutMove();
+                player.kingSquare = move.toSquare;
+                isChecked = !!this.isChecked(player);
+                move.undoMove();
+                player.kingSquare = move.fromSquare;
+            } else {
+                move.carryOutMove();
+                isChecked = !!this.isChecked(player);
+                move.undoMove();
+            }
+        }
+
+        return isChecked;
+    }
+
+    toFen(): string {
+        return this.ranks
+            .map((rank) => {
+                let row: string = "";
+                let emptyCount: number = 0;
+
+                for (const file of this.files) {
+                    const square: Square | null = this.getSquareByName(file + rank);
+
+                    if (!square || square.isEmpty()) {
+                        emptyCount++;
+                        continue;
+                    }
+
+                    if (emptyCount > 0) {
+                        row += emptyCount;
+                        emptyCount = 0;
+                    }
+
+                    if (square.piece) {
+                        const pieceName: PieceName = square.piece.getName();
+                        row += square.piece.color === PlayerColor.White ? pieceName.toUpperCase() : pieceName;
+                    }
+                }
+
+                if (emptyCount > 0) {
+                    row += emptyCount;
+                }
+
+                return row;
+            })
+            .reverse()
+            .join("/");
+    }
+
+    toString(): string {
+        const header: string = "\n  " + this.files.join(" ") + "\n";
+        const border: string = "+ --------------- +\n";
+        let board: string = header + border;
+
+        this.reversedRanks.map((rank) => {
+            let row: string = "| ";
+            for (const file of this.files) {
+                const square = this.getSquareByName(file + rank);
+                row += (square?.toString() ?? ".") + " ";
+            }
+            row += `| ${rank}\n`;
+            board += row;
+        });
+
+        board += border;
+        return board;
+    }
+
+    serialize(): SquaresDTO {
+        const squares: SquaresDTO = {};
+        for (const [squareName, square] of this.squares.entries()) {
+            squares[squareName] = square.piece?.serialize() ?? null;
+        }
+
+        return squares;
+    }
+}

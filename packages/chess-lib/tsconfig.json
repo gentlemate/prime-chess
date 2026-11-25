@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "outDir": "dist",
+        "rootDir": "src",
+        "sourceMap": true,
+        "declaration": true,
+        "declarationMap": true,
+        "stripInternal": true, // Do not emit declarations for code that has an @internal annotation in its JSDoc comment
+        "strict": true,
+        "isolatedModules": true
+    },
+    "include": ["src"]
+}
