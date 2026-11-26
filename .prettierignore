@@ -2,4 +2,7 @@ node_modules
 .nuxt
 .env
 pnpm-lock.yaml
+apps/backend/build
+apps/backend/.adonisjs
+apps/frontend/.output
 packages/chess-lib/src/coordinates/Directions.ts
