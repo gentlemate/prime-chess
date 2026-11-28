@@ -62,6 +62,10 @@ export class King extends Piece {
                 continue;
             }
 
+            if (!rookSquare.isOccupiedByPieceName(PieceName.Rook) || !rookSquare.isOccupiedByAlly(player.color)) {
+                continue;
+            }
+
             if (!chessboard.isPathLegal(player, fromSquare, toSquare, [rookSquare.name])) {
                 continue;
             }

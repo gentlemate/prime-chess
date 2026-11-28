@@ -42,8 +42,17 @@ export class Player {
             kingside: King.getCastlingDirection(CastlingSide.Kingside, direction) ?? Directions.Right,
             queenside: King.getCastlingDirection(CastlingSide.Queenside, direction) ?? Directions.Left,
         };
-        this.castlingSquares =
-            this.color === PlayerColor.Black ? Chessboard.BlacksCastlingSquares : Chessboard.WhitesCastlingSquares;
+        this.castlingSquares = structuredClone(
+            this.color === PlayerColor.Black ? Chessboard.BlacksCastlingSquares : Chessboard.WhitesCastlingSquares,
+        );
+    }
+
+    revokeCastlingRightsForRookSquare(squareName: string): void {
+        for (const side of [CastlingSide.Kingside, CastlingSide.Queenside]) {
+            if (this.castlingSquares[side].rook.from === squareName) {
+                this.castlingRights[side] = false;
+            }
+        }
     }
 
     updateCastlingRights(move: Move): void {

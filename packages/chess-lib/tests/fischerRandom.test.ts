@@ -70,12 +70,12 @@ describe("Fischer Random Chess", () => {
                                 chess.cancelLastMove();
                                 expect(
                                     chess.chessboard
-                                        .getSquareByName(Chessboard.WhitesCastlingSquares[side].king.from)
+                                        .getSquareByName(chess.players[0].castlingSquares[side].king.from)
                                         ?.piece?.serialize(),
                                 ).toMatchObject({ color: "w", name: "k" });
                                 expect(
                                     chess.chessboard
-                                        .getSquareByName(Chessboard.WhitesCastlingSquares[side].rook.from)
+                                        .getSquareByName(chess.players[0].castlingSquares[side].rook.from)
                                         ?.piece?.serialize(),
                                 ).toMatchObject({ color: "w", name: "r" });
                             });
@@ -130,12 +130,12 @@ describe("Fischer Random Chess", () => {
                                 chess.cancelLastMove();
                                 expect(
                                     chess.chessboard
-                                        .getSquareByName(Chessboard.BlacksCastlingSquares[side].king.from)
+                                        .getSquareByName(chess.players[1].castlingSquares[side].king.from)
                                         ?.piece?.serialize(),
                                 ).toMatchObject({ color: "b", name: "k" });
                                 expect(
                                     chess.chessboard
-                                        .getSquareByName(Chessboard.BlacksCastlingSquares[side].rook.from)
+                                        .getSquareByName(chess.players[1].castlingSquares[side].rook.from)
                                         ?.piece?.serialize(),
                                 ).toMatchObject({ color: "b", name: "r" });
                             });

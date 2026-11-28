@@ -133,6 +133,11 @@ export class Chess {
         move.carryOutMove();
         this.getActivePlayer().kingSquare = this.chessboard.findKingSquare(this.getActivePlayer().color);
         this.getActivePlayer().updateCastlingRights(move);
+        for (const player of this.players) {
+            if (player !== this.getActivePlayer()) {
+                player.revokeCastlingRightsForRookSquare(move.toSquare.name);
+            }
+        }
         this.setNextPlayer();
         if (this.activePlayerIndex === 0) this.fullmoveNumber++;
         this.halfmoveClock = isPawnMove || move instanceof Capture ? 0 : this.halfmoveClock + 1;
@@ -165,9 +170,11 @@ export class Chess {
         this.fullmoveNumber = fen.fullmoveNumber;
         this.halfmoveClock = fen.halfmoveClock;
         this.setPreviousPlayer();
+        for (const player of this.players) {
+            player.castlingRights = fen.castlingRecord[player.color];
+        }
         const activePlayer: Player = this.getActivePlayer();
         activePlayer.kingSquare = this.chessboard.findKingSquare(activePlayer.color);
-        activePlayer.castlingRights = fen.castlingRecord[activePlayer.color];
         activePlayer.isChecked = this.chessboard.isChecked(activePlayer);
         this.setLegalMoves();
 

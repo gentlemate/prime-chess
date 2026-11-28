@@ -50,7 +50,10 @@ export function useChessCore(state: GameState | null = null) {
 
     function initGame(state: GameState | null = null): Chess {
         if (state?.initialFen) {
-            const game: Chess = chess.fromFen(state.initialFen);
+            const game: Chess =
+                state.variant === ChessVariant.FischerRandom
+                    ? chess.fischerRandomFromFen(state.initialFen)
+                    : chess.fromFen(state.initialFen);
             for (const move of state.moves) {
                 game.tryMove(move.from, move.to);
             }

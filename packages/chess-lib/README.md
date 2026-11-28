@@ -147,6 +147,16 @@ Creates a Fischer Random chess game.
 
 Returns `Chess`
 
+### fischerRandomFromFen(fen: string): Chess
+
+Creates a Fischer Random chess game from a given FEN record. Castling squares are deduced from the king and rooks positions.
+
+| Parameter | Type     | Description                |
+| --------- | -------- | -------------------------- |
+| `fen`     | `string` | **Required**. A FEN record |
+
+Returns `Chess`
+
 ### fischerRandomById(identifier: number | string): Chess
 
 Creates a Fischer Random chess game from a given position identifier.
