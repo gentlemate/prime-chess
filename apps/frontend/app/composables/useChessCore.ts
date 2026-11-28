@@ -82,6 +82,7 @@ export function useChessCore(state: GameState | null = null) {
     }
 
     function updateInternalState(): void {
+        history.value = game.value.getHistory();
         legalMoves.value = game.value.getLegalMoves();
         activePlayerIndex.value = game.value.getActivePlayerIndex();
         algebraicMoves.value = history.value.slice(1).map((entry) => entry.move?.algebraic ?? "");
