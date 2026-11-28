@@ -23,7 +23,7 @@ function createPublicApi(chess: Chess): IChess {
         players: chess.serializePlayers(),
         getChessboard: () => chessboard.fromFen(chess.chessboard.toFen()),
         getLegalMoves: () => chess.serializeLegalMoves(),
-        getHistory: () => chess.history,
+        getHistory: () => [...chess.history],
         getActivePlayerIndex: () => chess.activePlayerIndex,
         isLegalMove: (from: string, to: string): boolean => chess.isLegalMove(from, to),
         tryMove: (from: string, to: string): MoveDTO | null => chess.tryMove(from, to),

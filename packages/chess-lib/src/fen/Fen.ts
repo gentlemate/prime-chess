@@ -43,8 +43,14 @@ export class Fen {
     }
 
     static fromString(fenString: string): Fen {
-        const [position, activePlayer, castlingRights, enPassantTarget, halfmoveClock, fullmoveNumber] =
-            fenString.split(" ");
+        const [
+            position,
+            activePlayer = PlayerColor.White,
+            castlingRights = "-",
+            enPassantTarget = "-",
+            halfmoveClock = "0",
+            fullmoveNumber = "1",
+        ] = fenString.trim().split(/\s+/);
 
         return new Fen(
             position,
@@ -54,9 +60,14 @@ export class Fen {
                 b: Fen.parseCastlingRights(castlingRights, PlayerColor.Black),
             },
             enPassantTarget,
-            Number(halfmoveClock),
-            Number(fullmoveNumber),
+            Fen.parseCounter(halfmoveClock, 0),
+            Fen.parseCounter(fullmoveNumber, 1),
         );
+    }
+
+    static parseCounter(value: string, minimum: number): number {
+        const counter: number = Number(value);
+        return Number.isInteger(counter) && counter >= minimum ? counter : minimum;
     }
 
     toString(): string {

@@ -20,13 +20,13 @@ describe("Pawn", () => {
             title: "two-square advance",
             color,
             move: { fromSquare: "e2", toSquare: "e4", piece: { color: "w", name: "p" } },
-            expectedFenAfterMove: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e4 0 1",
+            expectedFenAfterMove: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
         });
 
         testMove({
             title: "capture",
             color,
-            initialFen: "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d5 0 2",
+            initialFen: "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2",
             move: {
                 fromSquare: "e4",
                 toSquare: "d5",
@@ -45,7 +45,7 @@ describe("Pawn", () => {
         testMove({
             title: "en passant capture",
             color,
-            initialFen: "rnbqkbnr/pp2pppp/8/2pP4/8/8/PPPP1PPP/RNBQKBNR w KQkq c5 0 3",
+            initialFen: "rnbqkbnr/pp2pppp/8/2pP4/8/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 3",
             move: {
                 fromSquare: "d5",
                 toSquare: "c6",
@@ -70,7 +70,7 @@ describe("Pawn", () => {
         testMove({
             title: "one-square advance",
             color,
-            initialFen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e4 0 1",
+            initialFen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
             move: { fromSquare: "e7", toSquare: "e6", piece: { color: "b", name: "p" } },
             expectedFenAfterMove: "rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
         });
@@ -78,15 +78,15 @@ describe("Pawn", () => {
         testMove({
             title: "two-square advance",
             color,
-            initialFen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e4 0 1",
+            initialFen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
             move: { fromSquare: "e7", toSquare: "e5", piece: { color: "b", name: "p" } },
-            expectedFenAfterMove: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e5 0 2",
+            expectedFenAfterMove: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2",
         });
 
         testMove({
             title: "capture",
             color,
-            initialFen: "rnbqkbnr/pppp1ppp/8/4p3/3PP3/8/PPP2PPP/RNBQKBNR b KQkq d4 0 2",
+            initialFen: "rnbqkbnr/pppp1ppp/8/4p3/3PP3/8/PPP2PPP/RNBQKBNR b KQkq d3 0 2",
             move: {
                 fromSquare: "e5",
                 toSquare: "d4",
@@ -105,7 +105,7 @@ describe("Pawn", () => {
         testMove({
             title: "en passant capture",
             color,
-            initialFen: "rnbqkbnr/pppp1ppp/8/8/2PpP3/8/PP3PPP/RNBQKBNR b KQkq c4 0 3",
+            initialFen: "rnbqkbnr/pppp1ppp/8/8/2PpP3/8/PP3PPP/RNBQKBNR b KQkq c3 0 3",
             move: {
                 fromSquare: "d4",
                 toSquare: "c3",

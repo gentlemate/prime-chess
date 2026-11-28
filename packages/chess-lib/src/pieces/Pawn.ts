@@ -33,10 +33,11 @@ export class Pawn extends Piece {
             moves.push(move);
 
             if (Pawn.isInitialPosition(fromSquare.position, player.direction, chessboard)) {
+                const skippedSquare: Square = toSquare;
                 toSquare = chessboard.getSquareByDirection(toSquare, player.direction);
                 if (toSquare && toSquare.isEmpty()) {
                     let move: Move = new Move(fromSquare, toSquare);
-                    move.enPassantTarget = toSquare.name;
+                    move.enPassantTarget = skippedSquare.name;
                     moves.push(move);
                 }
             }
@@ -67,24 +68,27 @@ export class Pawn extends Piece {
     ): Move[] {
         let moves: Move[] = [];
 
-        if (enPassantTarget) {
-            let enPassantTargetSquare: Square | null = null;
-            let toSquare: Square | null = null;
+        if (!enPassantTarget) {
+            return moves;
+        }
 
-            for (const direction of player.enPassantCaptureDirections) {
-                enPassantTargetSquare = chessboard.getSquareByDirection(fromSquare, direction);
-                if (enPassantTargetSquare?.name === enPassantTarget) {
-                    toSquare = chessboard.getSquareByDirection(enPassantTargetSquare, player.direction);
-                    if (toSquare && toSquare.isEmpty() && enPassantTargetSquare.piece) {
-                        let move: Move = new EnPassantCapture(
-                            fromSquare,
-                            toSquare,
-                            enPassantTargetSquare.piece,
-                            enPassantTargetSquare,
-                        );
-                        moves.push(move);
-                    }
-                }
+        for (const direction of player.pawnCaptureDirections) {
+            const toSquare: Square | null = chessboard.getSquareByDirection(fromSquare, direction);
+            if (!toSquare || toSquare.name !== enPassantTarget || !toSquare.isEmpty()) {
+                continue;
+            }
+
+            const captureSquare: Square | null = chessboard.getSquareByPosition({
+                x: toSquare.position.x - player.direction.dx,
+                y: toSquare.position.y - player.direction.dy,
+            });
+
+            if (
+                captureSquare?.piece &&
+                captureSquare.isOccupiedByPieceName(PieceName.Pawn) &&
+                captureSquare.isOccupiedByOpponent(player.color)
+            ) {
+                moves.push(new EnPassantCapture(fromSquare, toSquare, captureSquare.piece, captureSquare));
             }
         }
 

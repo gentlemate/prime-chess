@@ -8,6 +8,8 @@ import { Piece } from "../pieces/Piece";
 import { Player } from "../players/Player";
 import { Move } from "../moves/Move";
 import { Capture } from "../moves/Capture";
+import { Castling } from "../moves/Castling";
+import { Promotion } from "../moves/Promotion";
 import { Chessboard } from "../board/Chessboard";
 import { PlayerDTO } from "../dto/PlayerDTO";
 import { MoveDTO } from "../dto/MoveDTO";
@@ -34,15 +36,19 @@ export class Chess {
         this.setKingSquares();
         this.setCastlingSquares();
 
-        this.activePlayerIndex = this.players.findIndex((p) => (p.color as string) === fen.activePlayer) ?? 0;
+        this.activePlayerIndex = Math.max(
+            0,
+            this.players.findIndex((p) => (p.color as string) === fen.activePlayer),
+        );
         const activePlayer: Player = this.getActivePlayer();
+        fen.activePlayer = activePlayer.color;
         activePlayer.isChecked = this.chessboard.isChecked(activePlayer);
 
         this.halfmoveClock = fen.halfmoveClock;
         this.fullmoveNumber = fen.fullmoveNumber;
 
         this.history.push({
-            fen: fenString,
+            fen: fen.toString(),
             move: null,
             checkedSquare: activePlayer.isChecked ? (activePlayer.kingSquare?.name ?? null) : null,
         });
@@ -128,7 +134,7 @@ export class Chess {
 
     playMove(move: Move): void {
         const isPawnMove: boolean = move.fromSquare.piece?.getName() === PieceName.Pawn;
-        const moveDTO: MoveDTO = move.serialize();
+        const moveDTO: MoveDTO = { ...move.serialize(), algebraic: this.getSan(move) };
         this.getActivePlayer().isChecked = false;
         move.carryOutMove();
         this.getActivePlayer().kingSquare = this.chessboard.findKingSquare(this.getActivePlayer().color);
@@ -144,6 +150,67 @@ export class Chess {
         this.getActivePlayer().isChecked = this.chessboard.isChecked(this.getActivePlayer());
         this.storeHistoryEntry(moveDTO, move.enPassantTarget);
         this.setLegalMoves();
+        if (this.getActivePlayer().isChecked) {
+            moveDTO.algebraic += Object.keys(this.legalMoves).length === 0 ? "#" : "+";
+        }
+    }
+
+    getSan(move: Move): string {
+        if (move instanceof Castling) {
+            return move.toString();
+        }
+
+        const piece: Piece | null = move.fromSquare.piece;
+        if (!piece) {
+            return "";
+        }
+
+        const pieceName: PieceName = piece.getName();
+        const isCapture: boolean = move instanceof Capture && move.capturedPiece !== null;
+        let san: string = "";
+
+        if (pieceName === PieceName.Pawn) {
+            if (isCapture) san += this.chessboard.files[move.fromSquare.position.x] + "x";
+        } else {
+            san += pieceName.toUpperCase() + this.getDisambiguation(move);
+            if (isCapture) san += "x";
+        }
+
+        san += move.toSquare.name;
+
+        if (move instanceof Promotion) {
+            san += "=" + PieceName.Queen.toUpperCase();
+        }
+
+        return san;
+    }
+
+    getDisambiguation(move: Move): string {
+        const pieceName: PieceName | undefined = move.fromSquare.piece?.getName();
+        const rivals: Move[] = [];
+
+        for (const [fromSquareName, moves] of Object.entries(this.legalMoves)) {
+            const rival: Move | undefined = moves[move.toSquare.name];
+            if (
+                fromSquareName !== move.fromSquare.name &&
+                rival &&
+                !(rival instanceof Castling) &&
+                rival.fromSquare.piece?.getName() === pieceName
+            ) {
+                rivals.push(rival);
+            }
+        }
+
+        if (rivals.length === 0) {
+            return "";
+        }
+
+        const file: string = this.chessboard.files[move.fromSquare.position.x];
+        const rank: string = this.chessboard.ranks[move.fromSquare.position.y];
+
+        if (!rivals.some((rival) => rival.fromSquare.position.x === move.fromSquare.position.x)) return file;
+        if (!rivals.some((rival) => rival.fromSquare.position.y === move.fromSquare.position.y)) return rank;
+        return file + rank;
     }
 
     tryMove(fromSquareName: string, toSquareName: string): MoveDTO | null {
