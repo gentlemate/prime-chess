@@ -9,10 +9,11 @@
     "scripts": {
         "dev:frontend": "pnpm --filter @primechess/frontend dev",
         "dev:backend": "pnpm --filter @primechess/backend dev",
-        "dev": "pnpm -r dev",
-        "test:chess-lib": "pnpm --filter @primechess/chess-lib exec vitest run",
+        "dev": "pnpm -r --parallel dev",
+        "typecheck:chess-lib": "pnpm --filter @primechess/chess-lib typecheck",
+        "test:chess-lib": "pnpm --filter @primechess/chess-lib test",
         "build:chess-lib": "pnpm --filter @primechess/chess-lib build",
-        "chess-lib": "pnpm test:chess-lib && pnpm build:chess-lib",
+        "chess-lib": "pnpm typecheck:chess-lib && pnpm test:chess-lib && pnpm build:chess-lib",
         "update": "pnpm -r update",
         "update:frontend": "pnpm update --filter @primechess/frontend",
         "update:backend": "pnpm update --filter @primechess/backend",
@@ -21,7 +22,7 @@
     },
     "keywords": [],
     "author": "gentlemate",
-    "packageManager": "pnpm@10.34.9",
+    "packageManager": "pnpm@12.23.0+sha512.02da94ffaf133f46074322afe552f90d40b5f71ae259aefbccdacc5085b1d617e98d65e0131f5748b9b67445978ee5055d7d59a473f1eef0d504854fefcd5975",
     "devDependencies": {
         "prettier": "^3.10.1",
         "prettier-plugin-tailwindcss": "^0.8.1"

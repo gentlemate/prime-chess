@@ -94,7 +94,7 @@ describe("King", () => {
             title: "kingside castling",
             color,
             initialFen: "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",
-            move: { fromSquare: "e1", toSquare: "g1" },
+            move: { fromSquare: "e1", toSquare: "g1", piece: { color: "w", name: "k" } },
             expectedFenAfterMove: "r3k2r/8/8/8/8/8/8/R4RK1 b kq - 1 1",
         });
 
@@ -102,7 +102,7 @@ describe("King", () => {
             title: "queenside castling",
             color,
             initialFen: "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",
-            move: { fromSquare: "e1", toSquare: "c1" },
+            move: { fromSquare: "e1", toSquare: "c1", piece: { color: "w", name: "k" } },
             expectedFenAfterMove: "r3k2r/8/8/8/8/8/8/2KR3R b kq - 1 1",
         });
     });
@@ -113,7 +113,7 @@ describe("King", () => {
             title: "kingside castling",
             color,
             initialFen: "r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1",
-            move: { fromSquare: "e8", toSquare: "g8" },
+            move: { fromSquare: "e8", toSquare: "g8", piece: { color: "b", name: "k" } },
             expectedFenAfterMove: "r4rk1/8/8/8/8/8/8/R3K2R w KQ - 1 2",
         });
 
@@ -121,7 +121,7 @@ describe("King", () => {
             title: "queenside castling",
             color,
             initialFen: "r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1",
-            move: { fromSquare: "e8", toSquare: "c8" },
+            move: { fromSquare: "e8", toSquare: "c8", piece: { color: "b", name: "k" } },
             expectedFenAfterMove: "2kr3r/8/8/8/8/8/8/R3K2R w KQ - 1 2",
         });
     });

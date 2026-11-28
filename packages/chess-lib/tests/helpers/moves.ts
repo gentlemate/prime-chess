@@ -65,6 +65,11 @@ export function expectLegalMove(chess: Chess, color: PlayerColor, move: MoveDTO)
 
     expect(fromSquare?.isOccupiedByAlly(color)).toBe(true);
 
+    if (move.piece) {
+        expect(fromSquare?.isOccupiedByAlly(move.piece.color as PlayerColor)).toBe(true);
+        expect(fromSquare?.isOccupiedByPieceName(move.piece.name as PieceName)).toBe(true);
+    }
+
     if (captureSquare) {
         expect(captureSquare.isOccupiedByOpponent(color)).toBe(true);
         if (move.capturedPiece) {
@@ -87,6 +92,12 @@ export function expectMovePlayed(chess: Chess, color: PlayerColor, move: MoveDTO
 
     expect(fromSquare?.isEmpty()).toBe(true);
     expect(toSquare?.isOccupiedByAlly(color)).toBe(true);
+
+    if (move.piece) {
+        const expectedPieceName = move.isPromoting ? PieceName.Queen : (move.piece.name as PieceName);
+        expect(toSquare?.isOccupiedByAlly(move.piece.color as PlayerColor)).toBe(true);
+        expect(toSquare?.isOccupiedByPieceName(expectedPieceName)).toBe(true);
+    }
 
     if (captureSquare && captureSquare !== toSquare) {
         expect(captureSquare?.isEmpty()).toBe(true);
